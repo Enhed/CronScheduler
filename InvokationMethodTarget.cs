@@ -6,19 +6,23 @@ namespace CronScheduler
 {
     public sealed class InvokationMethodTarget
     {
-        public InvokationMethodTarget(string cron, Type type, MethodInfo info, object instanse = null)
+        private string cron;
+        private bool enabled;
+
+        public InvokationMethodTarget(string cron, Type type, MethodInfo info,
+            object instanse = null, bool enabled = true)
         {
             Type = type;
-            Cron = cron;
+            this.cron = cron;
             MethodInfo = info;
             Instanse = instanse;
+            this.enabled = enabled;
 
             options = new CrontabSchedule.ParseOptions { IncludingSeconds = true };
             CreateSheduler();
         }
 
         public readonly Type Type;
-        public readonly string Cron;
         public readonly MethodInfo MethodInfo;
         public readonly object Instanse;
 
@@ -26,9 +30,29 @@ namespace CronScheduler
         private CrontabSchedule sheduler;
         private DateTime next;
 
+        public string Cron
+        {
+            get => cron;
+            set
+            {
+                this.cron = value;
+                CreateSheduler();
+            }
+        }
+
+        public bool Enabled
+        {
+            get => enabled;
+            set
+            {
+                enabled = value;
+                if(enabled) CreateSheduler();
+            }
+        }
+
         public bool IsElapsed()
         {
-            return DateTime.Now >= next;
+            return Enabled && DateTime.Now >= next;
         }
 
         public void MoveNext()
