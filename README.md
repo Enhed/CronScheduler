@@ -34,6 +34,7 @@ namespace CronFoo
             // can change cron or enabled:
             CronService.Take(typeof(Program), nameof(Foo2)).Cron = "*/10 * * * * *";
             CronService.Take(typeof(Program), nameof(Foo)).Enabled = false;
+            CronService.Take(typeof(Program), nameof(FooIn), p).Enabled = false;
 
             Console.ReadLine();
         }
