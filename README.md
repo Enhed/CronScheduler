@@ -1,5 +1,15 @@
 # CronScheduler
 
+Based on [NCrontab](https://github.com/atifaziz/NCrontab)
+
+## Getting started
+
+First of all, install `CronScheduler` into your project using a NuGet client.
+
+    Install-Package CronScheduler
+
+## Simple example
+
 ```c#
 
 /*
