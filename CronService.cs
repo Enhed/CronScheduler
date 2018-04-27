@@ -71,7 +71,19 @@ namespace CronScheduler
             return type.GetMethods().Any(IsTarget);
         }
 
-        public static void Add(InvokationMethodTarget target) => targets.Add(target);
+        public static void Add(InvokationMethodTarget target)
+        {
+            if(targets.Any(t => t.Type == target.Type
+                && t.MethodInfo == target.MethodInfo && t.Instanse == target.Instanse)) return;
+
+            targets.Add(target);
+        }
+
+        public static InvokationMethodTarget Take(Type type, string methodName, object instanse = null)
+        {
+            return targets.FirstOrDefault( ct => ct.Type == type
+                && ct.MethodInfo.Name == methodName && ct.Instanse == instanse );
+        }
 
         private static void OnElapsed(object sender, ElapsedEventArgs e)
         {
@@ -81,23 +93,27 @@ namespace CronScheduler
 
         private static async void Invoke()
         {
-            var tasks = targets.Where(t => t.IsElapsed())
-                .Select(t =>
-                {
-                    t.MoveNext();
+            void invoke(InvokationMethodTarget target)
+            {
+                target.MoveNext();
 
-                    return Task.Run( () =>
-                    {
-                        try
-                        {
-                            t.MethodInfo.Invoke(t.Instanse, null);
-                        }
-                        catch(Exception ex)
-                        {
-                            Errored?.Invoke( new InvokeError("Error invokation", t, ex) );
-                        }
-                    });
-                });
+                try
+                {
+                    target.MethodInfo.Invoke(target.Instanse, null);
+                }
+                catch(Exception ex)
+                {
+                    Errored?.Invoke( new InvokeError("Error invokation", target, ex) );
+                }
+            }
+
+            Task getTask(InvokationMethodTarget target)
+            {
+                return Task.Run( () => invoke(target) );
+            }
+
+            var tasks = targets.Where(t => t.IsElapsed())
+                .Select(getTask);
 
             await Task.WhenAll(tasks);
         }
