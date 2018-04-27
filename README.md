@@ -24,9 +24,17 @@ namespace CronFoo
         static void Main(string[] args)
         {
             CronService.Errored += OnError;
-            CronService.InitStatic(typeof(Program));
+            CronService.InitStatic(typeof(Program)); // init all statics crones
+
             var p = new Program();
-            p.InitCrones();
+            p.InitCrones(); // init all instanse crones
+
+            Thread.Sleep(20000);
+
+            // can change cron or enabled:
+            CronService.Take(typeof(Program), nameof(Foo2)).Cron = "*/10 * * * * *";
+            CronService.Take(typeof(Program), nameof(Foo)).Enabled = false;
+
             Console.ReadLine();
         }
 
