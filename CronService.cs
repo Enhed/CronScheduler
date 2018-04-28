@@ -27,6 +27,8 @@ namespace CronScheduler
         public static event Action<InvokeError> Errored;
         private readonly static Timer timer;
         private readonly static ConcurrentBag<InvokationMethodTarget> targets;
+        public static InvokationMethodTarget[] RegisterTargets
+            => targets.ToArray();
 
         static CronService()
         {
@@ -38,21 +40,12 @@ namespace CronScheduler
 
         public static void InitInstanse(object instanse)
         {
-            instanse.GetType()
-                .GetMethods(ShareFlags | BindingFlags.Instance)
-                .Select( method => ( mi : method, cron : GetCron(method) ) )
-                .Where( t => t.cron != null )
-                .Select( t => new InvokationMethodTarget(t.cron.Value, instanse.GetType(), t.mi, instanse) )
-                .ToList().ForEach(Add);
+            GetInstanseTargets(instanse).ToList().ForEach(Add);
         }
 
         public static void InitStatic(Type type)
         {
-            type.GetMethods(ShareFlags | BindingFlags.Static)
-                .Select( method => ( mi : method, cron : GetCron(method) ) )
-                .Where( t => t.cron != null )
-                .Select( t => new InvokationMethodTarget(t.cron.Value, type, t.mi) )
-                .ToList().ForEach(Add);
+            GetStaticTargets(type).ToList().ForEach(Add);
         }
 
         public static CronAttribute GetCron(MethodInfo methodInfo)
@@ -121,6 +114,25 @@ namespace CronScheduler
         public static void InitCrones(this object o)
         {
             InitInstanse(o);
+        }
+
+        public static InvokationMethodTarget[] GetInstanseTargets(object instanse)
+        {
+            return instanse.GetType()
+                .GetMethods(ShareFlags | BindingFlags.Instance)
+                .Select( method => ( mi : method, cron : GetCron(method) ) )
+                .Where( t => t.cron != null )
+                .Select( t => new InvokationMethodTarget(t.cron.Value, instanse.GetType(), t.mi, instanse) )
+                .ToArray();
+        }
+
+        public static InvokationMethodTarget[] GetStaticTargets(Type type)
+        {
+            return type.GetMethods(ShareFlags | BindingFlags.Static)
+                .Select( method => ( mi : method, cron : GetCron(method) ) )
+                .Where( t => t.cron != null )
+                .Select( t => new InvokationMethodTarget(t.cron.Value, type, t.mi) )
+                .ToArray();
         }
     }
 }
