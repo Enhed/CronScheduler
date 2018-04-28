@@ -30,6 +30,8 @@ namespace CronScheduler
         private CrontabSchedule sheduler;
         private DateTime next;
 
+        public string FullName => $"{Type.Name}.{MethodInfo.Name}";
+
         public string Cron
         {
             get => cron;
